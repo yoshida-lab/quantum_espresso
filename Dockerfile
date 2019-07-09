@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.1-devel
+FROM ubuntu:latest
 
 LABEL maintainer="TsumiNa <liu.chang.1865@gmail.com>"
 
@@ -6,18 +6,17 @@ LABEL maintainer="TsumiNa <liu.chang.1865@gmail.com>"
 # Install some basic utilities
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
     gfortran \
     curl \
     ca-certificates \
     sudo \
+    make \
     # libtool \
     # libtool-bin \
     # # mpich \
-    libopenmpi-dev \
-    libscalapack-openmpi-dev \
+    # libscalapack-openmpi-dev \
     libopenblas-dev \
-    openmpi-bin \
-    openmpi-common \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,6 +32,7 @@ WORKDIR /workspace
 
 ARG qe=q-e-qe-6.4.1
 ARG QE_DIR=/home/user/qe
+ARG openmpi=openmpi-4.0.1
 
 # ARG elpa=elpa-2019.05.001
 # ARG ELPA_DIR=/home/user/elpa
@@ -41,8 +41,8 @@ ENV PARA_PREFIX=mpiexec
 ENV OMP_num=4
 ENV PARA_POSTFIX="-n ${OMP_num}"
 
-# install psxe
-# COPY . .
+RUN curl https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.bz2 | tar -xj && cd ${openmpi} &&\
+    ./configure && make -j 4 && sudo make install
 
 # install elpa
 # RUN tar -xzf ${elpa}.tar.gz && cd $elpa && \
@@ -60,20 +60,19 @@ ENV PARA_POSTFIX="-n ${OMP_num}"
 #     sudo make install && \
 #     cd ..
 
-RUN \
-    curl -O https://gitlab.com/QEF/q-e/-/archive/qe-6.4.1/${qe}.tar.gz &&\
-    tar -xzf ${qe}.tar.gz && cd $qe && \
-    ./configure --prefix=$HOME \
-    # --enable-openmp \
-    # --enable-parallel=no \
-    # --with-elpa-include="/include/elpa_onenode_openmp-2019.05.001/elpa" \
-    # --with-elpa-lib="lib/libelpa_onenode_openmp.a" \
-    # --with-elpa-version=2016 \
-    && \
-    make -j pwall tddfpt && sudo make install && \
-    cd .. && rm -rf $qe* 
+# RUN \
+#     curl https://gitlab.com/QEF/q-e/-/archive/qe-6.4.1/${qe}.tar.gz | tar -xz && cd $qe && \
+#     ./configure --prefix=$HOME \
+#     # --enable-openmp \
+#     # --enable-parallel=no \
+#     # --with-elpa-include="/include/elpa_onenode_openmp-2019.05.001/elpa" \
+#     # --with-elpa-lib="lib/libelpa_onenode_openmp.a" \
+#     # --with-elpa-version=2016 \
+#     && \
+#     make -j pwall tddfpt && sudo make install && \
+#     cd .. && rm -rf $qe* 
 
-CMD [ "bash" ]
+# CMD [ "bash" ]
 
 
 
