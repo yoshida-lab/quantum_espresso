@@ -49,6 +49,7 @@ RUN conda update -n base -c defaults -y conda && \
     umask 0
 
 ENV HOME=/home/user
+ENV ESPRESSO_PSEUDO=/pseudo_dir
 USER user
 
 CMD [ "python" ]
