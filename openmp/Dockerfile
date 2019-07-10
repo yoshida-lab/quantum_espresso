@@ -46,7 +46,7 @@ RUN conda update -n base -c defaults -y conda && \
     pip install -U ase ruamel.yaml && \
     conda clean -tipsy && \
     su -- user && \
-    && umask 0
+    umask 0
 
 ENV HOME=/home/user
 USER user
