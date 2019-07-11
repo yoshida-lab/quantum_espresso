@@ -4,14 +4,6 @@ LABEL maintainer="TsumiNa <liu.chang.1865@gmail.com>"
 
 RUN apk add --no-cache libgfortran bash openssh
 
-WORKDIR /workspace
-
-# add user
-RUN echo "Creating user..." &&\
-    adduser --disabled-password --gecos '' --shell /bin/sh user &&\
-    chown -R user:user /workspace &&\
-    chmod 777 -R /home/user && chmod 777 -R /workspace
-
 # install build-dependencies
 RUN apk add --no-cache -t build-dependencies \
     build-base \
@@ -30,16 +22,13 @@ RUN apk add --no-cache -t build-dependencies \
     ./configure && \
     make -j 4 pwall && \
     echo "installing..." && make install && make clean && cd .. && pwd && \
-    # add pseudos potentials
-    echo "Downloading potentials..." &&\
-    mkdir /pseudo_dir && cd /pseudo_dir &&  \
-    curl https://www.materialscloud.org/discover/data/discover/sssp/downloads/SSSP_precision_pseudos.tar.gz | tar -xvz &&\
-    curl https://www.materialscloud.org/discover/data/discover/sssp/downloads/SSSP_efficiency_pseudos.tar.gz | tar -xvz &&\
-    chmod 777 -R /pseudo_dir && \ 
     # cleanup
     echo "Cleanup" &&\
     rm -rf /workspace/openmpi-4.0.1 /workspace/q-e-qe-6.4.1 && \
-    apk del build-dependencies
+    apk del build-dependencies &&\
+    # make dir
+    mkdir -p /home/user /workspace /pseudo_dir && \
+    chmod 777 -R /home/user && chmod 777 -R /workspace && chmod 777 -R /pseudo_dir
 
 # Install Miniconda
 RUN conda update -n base -c defaults -y conda && \
@@ -49,13 +38,14 @@ RUN conda update -n base -c defaults -y conda && \
     # pandas=0.24.* \
     joblib && \
     pip install -U ase ruamel.yaml && \
-    conda clean -tipsy && \
-    su -- user && \
-    umask 0
+    conda clean -iy --all
 
 ENV HOME=/home/user
 ENV ESPRESSO_PSEUDO=/pseudo_dir
-USER user
+ENV OMPI_NUM=4
+ENV ASE_ESPRESSO_COMMAND="mpiexec -n ${OMPI_NUM} pw.x -in espresso.pwi > espresso.pwo"
+
+WORKDIR /workspace
 
 CMD [ "python" ]
 

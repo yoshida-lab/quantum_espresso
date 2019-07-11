@@ -1,7 +1,22 @@
 # Usage
 
+Using openMPI version
+
 ```bash
-docker run --rm -it --cap-add=SYS_PTRACE -v <path/to/input>:/workspace yoshidalab/quantum_espresso:openmpi bash
+docker run --rm -it --user $(id -u):$(id -g) --cap-add=SYS_PTRACE \
+            -e OMPI_NUM=4 \
+            -v <path/to/input>:/workspace \
+            -v <path/to/pseudopotentials>/pseudo_dir \
+            yoshidalab/quantum_espresso:openmpi bash
+```
+
+Using openMP version
+
+```bash
+docker run --rm -it --user $(id -u):$(id -g) \
+            -v <path/to/input>:/workspace \
+            -v <path/to/pseudopotentials>/pseudo_dir \
+            yoshidalab/quantum_espresso:openmpi bash
 ```
 
 # Compile qe with intel paraller studio
